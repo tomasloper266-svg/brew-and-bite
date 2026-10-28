@@ -200,12 +200,13 @@ app.use((req, res, next) => {
 });
 
 // Public storefront served from GitHub Pages reads the API cross-origin.
-// Admin endpoints stay safe: sessions ride on cookies that cross-origin
-// pages cannot send, and the admin panel itself is always same-origin.
+// The team admin panel may also run on GitHub Pages: it authenticates with an
+// HMAC-signed Bearer token (cookies cannot cross origins), so Authorization
+// joins the allowed headers and PATCH/PUT/DELETE join the allowed methods.
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
@@ -237,8 +238,43 @@ function fail(res, status, message, details) {
   res.status(status).json(body);
 }
 
+// The panel on GitHub Pages cannot use cookies cross-origin, so it presents
+// an HMAC-signed Bearer token instead (issued at login, 90-day lifetime).
+const ADMIN_TOKEN_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+
+function signAdminToken(userId) {
+  const payload = `${userId}.${Date.now()}`;
+  const mac = crypto.createHmac('sha256', loadOrCreateSessionSecret())
+    .update(payload).digest('hex').slice(0, 32);
+  return `${payload}.${mac}`;
+}
+
+function verifyAdminToken(token) {
+  if (typeof token !== 'string') return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  const [userId, issuedAt, mac] = parts;
+  if (!/^\d+$/.test(userId) || !/^\d+$/.test(issuedAt) || !/^[0-9a-f]{32}$/.test(mac)) return null;
+  const expected = crypto.createHmac('sha256', loadOrCreateSessionSecret())
+    .update(`${userId}.${issuedAt}`).digest('hex').slice(0, 32);
+  const a = Buffer.from(mac, 'hex');
+  const b = Buffer.from(expected, 'hex');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  const age = Date.now() - Number(issuedAt);
+  if (age < 0 || age > ADMIN_TOKEN_MAX_AGE_MS) return null;
+  return { userId: Number(userId) };
+}
+
+function bearerToken(req) {
+  const header = (req.get('authorization') || '').trim();
+  const m = /^Bearer\s+(\S+)$/i.exec(header);
+  return m ? verifyAdminToken(m[1]) : null;
+}
+
 function requireAuth(req, res, next) {
-  if (req.session && req.session.userId) return next();
+  if (req.session && req.session.userId) { req.userId = req.session.userId; return next(); }
+  const token = bearerToken(req);
+  if (token) { req.userId = token.userId; return next(); }
   return fail(res, 401, 'Authentication required. Log in via POST /api/auth/login.');
 }
 
@@ -363,7 +399,8 @@ app.post('/api/auth/login', (req, res) => {
     if (err) return fail(res, 500, 'Session error.');
     req.session.userId = account.id;
     req.session.username = account.username;
-    res.json({ user: { id: account.id, username: account.username } });
+    // Bearer token for the panel when it runs cross-origin (GitHub Pages).
+    res.json({ user: { id: account.id, username: account.username }, token: signAdminToken(account.id) });
   });
 });
 
@@ -372,8 +409,15 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  if (!req.session || !req.session.userId) return fail(res, 401, 'Not logged in.');
-  res.json({ user: { id: req.session.userId, username: req.session.username } });
+  if (req.session && req.session.userId) {
+    return res.json({ user: { id: req.session.userId, username: req.session.username } });
+  }
+  const token = bearerToken(req);
+  if (token) {
+    const account = db.prepare('SELECT id, username FROM accounts WHERE id = ?').get(token.userId);
+    if (account) return res.json({ user: { id: account.id, username: account.username } });
+  }
+  return fail(res, 401, 'Not logged in.');
 });
 
 // ---------------------------------------------------------------------------
@@ -388,7 +432,7 @@ app.post('/api/account/password', requireAuth, (req, res) => {
   if (b.new_password.length < 8) {
     return fail(res, 400, 'new_password must be at least 8 characters.');
   }
-  const account = db.prepare('SELECT id, password_hash FROM accounts WHERE id = ?').get(req.session.userId);
+  const account = db.prepare('SELECT id, password_hash FROM accounts WHERE id = ?').get(req.userId);
   if (!account) return fail(res, 401, 'Account not found.');
   if (!bcrypt.compareSync(b.current_password, account.password_hash)) {
     return fail(res, 400, 'Current password is incorrect.');

@@ -55,9 +55,36 @@ class ApiError extends Error {
   }
 }
 
+/* On the hosted backend everything is same-origin. When the panel runs on
+   GitHub Pages it talks to the live backend cross-origin with a Bearer token
+   (cookies cannot cross origins), mirroring the storefront's BB_BASE. */
+const ADMIN_API_BASE = /(^|\.)github\.io$/.test(location.hostname)
+  ? 'https://18npv6obi8-8820.hosted.obvious.ai'
+  : '';
+
+const ADMIN_TOKEN_KEY = 'bb_admin_token';
+
+function getStoredToken() {
+  try { return localStorage.getItem(ADMIN_TOKEN_KEY) || ''; } catch { return ''; }
+}
+
+function setStoredToken(token) {
+  try {
+    if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    else localStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch { /* storage unavailable: panel still works same-origin via cookies */ }
+}
+
+function adminAsset(p) {
+  const s = String(p || '');
+  return ADMIN_API_BASE && s.startsWith('/') ? ADMIN_API_BASE + s : s;
+}
+
 async function api(path, opts = {}) {
   const { method = 'GET', body, formData } = opts;
   const init = { method, credentials: 'same-origin', headers: {} };
+  const storedToken = getStoredToken();
+  if (storedToken) init.headers['Authorization'] = `Bearer ${storedToken}`;
   if (formData) init.body = formData;
   else if (body !== undefined) {
     init.headers['Content-Type'] = 'application/json';
@@ -65,7 +92,7 @@ async function api(path, opts = {}) {
   }
   let res;
   try {
-    res = await fetch(path, init);
+    res = await fetch(ADMIN_API_BASE + path, init);
   } catch {
     const net = new ApiError('network', 0);
     net.kind = 'network';
@@ -74,7 +101,14 @@ async function api(path, opts = {}) {
   let data = null;
   const text = await res.text();
   if (text) { try { data = JSON.parse(text); } catch { data = null; } }
-  if (!res.ok) throw new ApiError((data && data.error) || `HTTP ${res.status}`, res.status, data && data.details);
+  if (!res.ok) {
+    // A stored token that stopped working (expired/rotated) ends the session.
+    if (res.status === 401 && getStoredToken()) {
+      setStoredToken('');
+      if (state.user) { state.user = null; showLogin(); }
+    }
+    throw new ApiError((data && data.error) || `HTTP ${res.status}`, res.status, data && data.details);
+  }
   return data;
 }
 
@@ -227,7 +261,7 @@ function wireImageField(box, initialUrl) {
   const paint = () => {
     preview.classList.remove('uploading');
     preview.innerHTML = val
-      ? `<img src="${esc(val)}" alt="الصورة">`
+      ? `<img src="${esc(adminAsset(val))}" alt="الصورة">`
       : `<div class="ph">${ICONS.image}<span>لا توجد صورة بعد</span></div>`;
   };
   paint();
@@ -583,7 +617,7 @@ function itemRowHtml(it, idx, len) {
   ].join('');
   return `
     <div class="item-row">
-      <div class="item-thumb">${it.image ? `<img src="${esc(it.image)}" alt="">` : ICONS.image}</div>
+      <div class="item-thumb">${it.image ? `<img src="${esc(adminAsset(it.image))}" alt="">` : ICONS.image}</div>
       <div class="item-info">
         <div class="item-name">${esc(it.name_ar || it.name_en)} ${badges}</div>
         ${it.name_en ? `<div class="item-name-en">${esc(it.name_en)}</div>` : ''}
@@ -801,7 +835,7 @@ function paintCategories() {
     </div>
     ${state.categories.length ? state.categories.map((c, idx) => `
       <div class="item-row">
-        <div class="item-thumb">${c.card_image ? `<img src="${esc(c.card_image)}" alt="">` : ICONS.image}</div>
+        <div class="item-thumb">${c.card_image ? `<img src="${esc(adminAsset(c.card_image))}" alt="">` : ICONS.image}</div>
         <div class="item-info">
           <div class="item-name">${esc(c.name_ar || c.name_en)}</div>
           ${c.name_en ? `<div class="item-name-en">${esc(c.name_en)}</div>` : ''}
@@ -1159,6 +1193,7 @@ $('#logout-btn').addEventListener('click', async () => {
   try {
     await api('/api/auth/logout', { method: 'POST' });
   } catch (e) { console.warn('[admin] logout call failed (session will expire on its own):', e); }
+  setStoredToken('');
   state.user = null;
   unsaved.clear();
   showLogin();
@@ -1193,6 +1228,7 @@ $('#login-form').addEventListener('submit', async (e) => {
   btn.disabled = true; btn.textContent = 'جارٍ الدخول…';
   try {
     const r = await api('/api/auth/login', { method: 'POST', body: { username, password } });
+    setStoredToken(r.token || '');
     state.user = r.user;
     initAudio(); // user gesture → audio now allowed for later beeps
     enterApp(true);

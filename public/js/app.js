@@ -266,7 +266,7 @@
       <nav class="foot-nav" aria-label="Site">
         <a class="foot-btn foot-btn-primary" href="#/">${ICONS.home}<span>${esc(t.footHome)}</span></a>
         <a class="foot-btn foot-btn-outline" href="#/menu">${ICONS.grid}<span>${esc(t.footMenu)}</span></a>
-        <a class="foot-btn foot-btn-dark" href="${esc(BB_API.asset('/admin/'))}" rel="noopener">${ICONS.lock}<span>${esc(t.footAdmin)}</span></a>
+        <a class="foot-btn foot-btn-dark" href="admin/" rel="noopener">${ICONS.lock}<span>${esc(t.footAdmin)}</span></a>
       </nav>
       <div class="foot-copy">${esc(t.poweredBy)}</div>`;
   }
