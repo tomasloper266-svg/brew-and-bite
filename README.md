@@ -18,6 +18,7 @@ node server.js   # يعمل على المنفذ 8820
 
 - الموقع: `http://localhost:8820`
 - لوحة الفريق: `http://localhost:8820/admin/`
+- نسخة الزبائن على GitHub Pages: `https://tomasloper266-svg.github.io/brew-and-bite/` — تعرض الصفحة من Pages وتجيب المينيو والطلبات من الخادم الحي (راجع فرع `gh-pages`)
 - قاعدة البيانات SQLite جاهزة ضمن `data/brew-and-bite.db`، والصور في `data/uploads/`
 - أول حساب إداري يُنشأ عند أول إقلاع للخادم — اضبط كلمة المرور عبر متغير البيئة `ADMIN_PASSWORD` قبل أول تشغيل، أو غيّرها من الإعدادات بعد الدخول
 - إعادة بناء قاعدة البيانات من ملف المينيو المصدر (اختياري): `node scripts/migrate-menu-data.js` — الترحيل قابل لإعادة التشغيل دون تكرار

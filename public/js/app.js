@@ -131,7 +131,7 @@
   function imgWrapHTML(src, alt, cls = '') {
     const s = String(src || '').trim();
     if (!s) return `<div class="img-wrap img-fallback ${cls}" role="img" aria-label="${esc(alt)}"></div>`;
-    return `<div class="img-wrap ${cls}"><img src="${esc(s)}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="bbImgFail(this)"></div>`;
+    return `<div class="img-wrap ${cls}"><img src="${esc(BB_API.asset(s))}" alt="${esc(alt)}" loading="lazy" decoding="async" onerror="bbImgFail(this)"></div>`;
   }
 
   // ----------------------------------------------------------------- cart

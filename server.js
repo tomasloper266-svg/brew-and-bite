@@ -199,6 +199,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Public storefront served from GitHub Pages reads the API cross-origin.
+// Admin endpoints stay safe: sessions ride on cookies that cross-origin
+// pages cannot send, and the admin panel itself is always same-origin.
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.use(express.json({ limit: '1mb' }));
 
 app.use(session({
