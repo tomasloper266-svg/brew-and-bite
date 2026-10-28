@@ -115,7 +115,11 @@
     flame: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-2 5.5-2 8.5a2.5 2.5 0 0 0 5 .2C16.5 12 19 13.7 19 16.5A7 7 0 0 1 5 17c0-3 2-4.5 2.5-7C8 7 9 4 12 2z"/></svg>',
     star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
     alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4m0 4h.01"/></svg>',
-    food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M7 3v18M17 3c-1.5 1.5-2.5 3.5-2.5 6 0 2 1 3 2.5 3v9"/></svg>'
+    food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M7 3v18M17 3c-1.5 1.5-2.5 3.5-2.5 6 0 2 1 3 2.5 3v9"/></svg>',
+    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>',
+    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>'
   };
 
   // ---------------------------------------------------------------- images
@@ -259,6 +263,11 @@
         ${tel ? `<a class="foot-line" href="${esc(tel)}">${ICONS.phone}<bdi>${esc(phone)}</bdi></a>` : ''}
         ${hours ? `<span class="foot-line">${ICONS.clock}<bdi>${esc(hours)}</bdi></span>` : ''}
       </div>` : ''}
+      <nav class="foot-nav" aria-label="Site">
+        <a class="foot-btn foot-btn-primary" href="#/">${ICONS.home}<span>${esc(t.footHome)}</span></a>
+        <a class="foot-btn foot-btn-outline" href="#/menu">${ICONS.grid}<span>${esc(t.footMenu)}</span></a>
+        <a class="foot-btn foot-btn-dark" href="admin/" rel="noopener">${ICONS.lock}<span>${esc(t.footAdmin)}</span></a>
+      </nav>
       <div class="foot-copy">${esc(t.poweredBy)}</div>`;
   }
 
@@ -368,7 +377,7 @@
     const s = state.settings || {};
     const img = String(s.hero_image || '').trim();
     const title = BB_TEXT.pick(s.hero_title_ar, s.hero_title_en) || t.defaultHeroTitle;
-    const subtitle = BB_TEXT.pick(s.hero_subtitle_ar, s.hero_subtitle_en) || t.defaultHeroSubtitle;
+    const subtitle = BB_TEXT.pick(s.hero_subtitle_ar, s.hero_subtitle_en) || '';
     const chips = BB_TEXT.splitList(BB_TEXT.pick(s.hero_chips_ar, s.hero_chips_en));
     const chipList = (chips.length ? chips : t.defaultChips)
       .map((c) => `<span class="hero-chip">${esc(c)}</span>`).join('');
@@ -387,7 +396,7 @@
         <div class="container">
           <div class="hero-mark" aria-hidden="true">B</div>
           <h1 class="hero-title">${esc(title)}</h1>
-          <p class="hero-subtitle">${esc(subtitle)}</p>
+          ${subtitle ? `<p class="hero-subtitle">${esc(subtitle)}</p>` : ''}
           ${chipList ? `<div class="hero-chips">${chipList}</div>` : ''}
           <a class="btn btn-primary hero-cta" href="#/menu">${esc(cta)}</a>
         </div>
@@ -527,6 +536,41 @@
     }
   }
 
+  let catTabsResize = null;
+  function wireCatTabsScroller() {
+    const wrap = document.querySelector('.cat-tabs-wrap');
+    const strip = document.getElementById('catTabs');
+    if (!wrap || !strip) return;
+    const rtl = getComputedStyle(strip).direction === 'rtl';
+    const btnStart = wrap.querySelector('.cat-arrow-start');
+    const btnEnd = wrap.querySelector('.cat-arrow-end');
+    const maxScroll = () => strip.scrollWidth - strip.clientWidth;
+    const update = () => {
+      const can = maxScroll() > 2;
+      const x = strip.scrollLeft;
+      wrap.classList.toggle('is-scrollable', can);
+      btnStart.disabled = !can || (rtl ? x > -1 : x < 1);
+      btnEnd.disabled = !can || Math.abs(x) >= maxScroll() - 1;
+    };
+    const glide = (towardEnd) => strip.scrollBy({
+      left: (towardEnd ? 1 : -1) * (rtl ? -1 : 1) * Math.max(180, Math.round(strip.clientWidth * 0.65)),
+      behavior: 'smooth'
+    });
+    btnStart.addEventListener('click', () => glide(false));
+    btnEnd.addEventListener('click', () => glide(true));
+    strip.addEventListener('scroll', update, { passive: true });
+    strip.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && maxScroll() > 2) {
+        e.preventDefault();
+        strip.scrollBy({ left: e.deltaY * (rtl ? -1 : 1), behavior: 'smooth' });
+      }
+    }, { passive: false });
+    if (catTabsResize) window.removeEventListener('resize', catTabsResize);
+    catTabsResize = update;
+    window.addEventListener('resize', catTabsResize);
+    update();
+  }
+
   function renderMenu(route) {
     const t = T();
     state.menuUI = {
@@ -542,26 +586,35 @@
     $('#view').innerHTML = `
       <div class="menu-controls">
         <div class="container">
-          <div class="search-wrap">
-            ${ICONS.search}
-            <input id="menuSearch" type="search" placeholder="${esc(t.searchPh)}"
-                   aria-label="${esc(t.searchLabel)}" autocomplete="off" inputmode="search">
+          <div class="menu-topbar">
+            <div class="search-wrap">
+              ${ICONS.search}
+              <input id="menuSearch" type="search" placeholder="${esc(t.searchPh)}"
+                     aria-label="${esc(t.searchLabel)}" autocomplete="off" inputmode="search">
+            </div>
+            <div class="sort-select-wrap">
+              <select id="menuSort" aria-label="${esc(t.sortLabel)}">
+                ${SORTS.map((s) => {
+                  const labels = {
+                    'featured': t.sortFeatured, 'newest': t.sortNewest,
+                    'price-asc': t.sortPriceAsc, 'price-desc': t.sortPriceDesc,
+                    'popular': t.sortPopular, 'offers': t.sortOffers
+                  };
+                  return `<option value="${s.key}" ${state.menuUI.sort === s.key ? 'selected' : ''}>${esc(labels[s.key])}</option>`;
+                }).join('')}
+              </select>
+              <span class="sort-caret" aria-hidden="true">${ICONS.chev}</span>
+            </div>
           </div>
-          <div class="cat-tabs" id="catTabs" role="tablist" aria-label="${esc(t.categoriesTitle)}">
-            ${tabs.map((tb) => `
-              <button class="cat-tab ${String(state.menuUI.tab) === String(tb.id) ? 'active' : ''}"
-                      data-cat="${esc(tb.id)}" role="tab"
-                      ${String(state.menuUI.tab) === String(tb.id) ? 'aria-current="true"' : ''}>${esc(tb.label)}</button>`).join('')}
-          </div>
-          <div class="sort-chips" id="sortChips">
-            ${SORTS.map((s) => {
-              const labels = {
-                'featured': t.sortFeatured, 'newest': t.sortNewest,
-                'price-asc': t.sortPriceAsc, 'price-desc': t.sortPriceDesc,
-                'popular': t.sortPopular, 'offers': t.sortOffers
-              };
-              return `<button class="sort-chip ${state.menuUI.sort === s.key ? 'active' : ''}" data-sort="${s.key}">${esc(labels[s.key])}</button>`;
-            }).join('')}
+          <div class="cat-tabs-wrap">
+            <button class="cat-arrow cat-arrow-start" type="button" aria-label="${esc(t.catScrollBack)}">${ICONS.chev}</button>
+            <div class="cat-tabs" id="catTabs" role="tablist" aria-label="${esc(t.categoriesTitle)}">
+              ${tabs.map((tb) => `
+                <button class="cat-tab ${String(state.menuUI.tab) === String(tb.id) ? 'active' : ''}"
+                        data-cat="${esc(tb.id)}" role="tab"
+                        ${String(state.menuUI.tab) === String(tb.id) ? 'aria-current="true"' : ''}>${esc(tb.label)}</button>`).join('')}
+            </div>
+            <button class="cat-arrow cat-arrow-end" type="button" aria-label="${esc(t.catScrollForward)}">${ICONS.chev}</button>
           </div>
         </div>
       </div>
@@ -569,6 +622,7 @@
 
     refreshMenuResults();
     bindScrollSpy();
+    wireCatTabsScroller();
 
     $('#menuSearch').addEventListener('input', (e) => {
       state.menuUI.q = e.target.value;
@@ -584,11 +638,11 @@
       const first = $('.menu-section');
       if (first && state.menuUI.tab !== 'all') first.scrollIntoView({ block: 'start' });
     }));
-    $$('.sort-chip').forEach((b) => b.addEventListener('click', () => {
-      state.menuUI.sort = b.dataset.sort;
-      $$('.sort-chip').forEach((x) => x.classList.toggle('active', x === b));
+    $('#menuSort').addEventListener('change', (e) => {
+      state.menuUI.sort = e.target.value;
+      e.target.classList.toggle('changed', e.target.value !== 'featured');
       refreshMenuResults();
-    }));
+    });
   }
 
   // ------------------------------------------------------------- item page

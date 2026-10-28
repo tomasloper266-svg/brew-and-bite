@@ -13,6 +13,9 @@ const BB_STRINGS = {
     defaultChips: ['كافيه', 'كيتشين', 'لاونج'],
     defaultCta: 'استعرض القائمة',
     categoriesTitle: 'أقسام القائمة',
+    catScrollBack: 'مرر للبداية',
+    catScrollForward: 'مرر للنهاية',
+    sortLabel: 'ترتيب',
     menuEmpty: 'القائمة قادمة قريباً 🌱',
     menuEmptyHint: 'لم تُضف أصناف بعد — تابعنا قريباً',
     all: 'الكل',
@@ -72,6 +75,9 @@ const BB_STRINGS = {
     remove: 'إزالة',
     decrease: 'إنقاص الكمية',
     increase: 'زيادة الكمية',
+    footHome: 'الرئيسية',
+    footMenu: 'تصفح المنتجات',
+    footAdmin: 'لوحة التحكم',
     poweredBy: '© 2026 Brew & Bite — حمص، سوريا'
   },
   en: {
@@ -85,6 +91,9 @@ const BB_STRINGS = {
     defaultChips: ['Café', 'Kitchen', 'Lounge'],
     defaultCta: 'Browse the Menu',
     categoriesTitle: 'Categories',
+    catScrollBack: 'Scroll back',
+    catScrollForward: 'Scroll forward',
+    sortLabel: 'Sort',
     menuEmpty: 'Menu coming soon 🌱',
     menuEmptyHint: 'No items yet — check back soon',
     all: 'All',
@@ -144,6 +153,9 @@ const BB_STRINGS = {
     remove: 'Remove',
     decrease: 'Decrease quantity',
     increase: 'Increase quantity',
+    footHome: 'Home',
+    footMenu: 'Browse menu',
+    footAdmin: 'Admin panel',
     poweredBy: '© 2026 Brew & Bite — Homs, Syria'
   }
 };
