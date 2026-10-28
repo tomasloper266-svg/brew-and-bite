@@ -115,7 +115,10 @@
     flame: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-2 5.5-2 8.5a2.5 2.5 0 0 0 5 .2C16.5 12 19 13.7 19 16.5A7 7 0 0 1 5 17c0-3 2-4.5 2.5-7C8 7 9 4 12 2z"/></svg>',
     star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
     alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4m0 4h.01"/></svg>',
-    food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M7 3v18M17 3c-1.5 1.5-2.5 3.5-2.5 6 0 2 1 3 2.5 3v9"/></svg>'
+    food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M7 3v18M17 3c-1.5 1.5-2.5 3.5-2.5 6 0 2 1 3 2.5 3v9"/></svg>',
+    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>',
+    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
   };
 
   // ---------------------------------------------------------------- images
@@ -260,9 +263,9 @@
         ${hours ? `<span class="foot-line">${ICONS.clock}<bdi>${esc(hours)}</bdi></span>` : ''}
       </div>` : ''}
       <nav class="foot-nav" aria-label="Site">
-        <a href="#/">${esc(t.footHome)}</a>
-        <a href="#/menu">${esc(t.footMenu)}</a>
-        <a href="${esc(BB_API.asset('/admin/'))}" rel="noopener">${esc(t.footAdmin)}</a>
+        <a class="foot-btn foot-btn-primary" href="#/">${ICONS.home}<span>${esc(t.footHome)}</span></a>
+        <a class="foot-btn foot-btn-outline" href="#/menu">${ICONS.grid}<span>${esc(t.footMenu)}</span></a>
+        <a class="foot-btn foot-btn-dark" href="${esc(BB_API.asset('/admin/'))}" rel="noopener">${ICONS.lock}<span>${esc(t.footAdmin)}</span></a>
       </nav>
       <div class="foot-copy">${esc(t.poweredBy)}</div>`;
   }
@@ -373,7 +376,7 @@
     const s = state.settings || {};
     const img = String(s.hero_image || '').trim();
     const title = BB_TEXT.pick(s.hero_title_ar, s.hero_title_en) || t.defaultHeroTitle;
-    const subtitle = BB_TEXT.pick(s.hero_subtitle_ar, s.hero_subtitle_en) || t.defaultHeroSubtitle;
+    const subtitle = BB_TEXT.pick(s.hero_subtitle_ar, s.hero_subtitle_en) || '';
     const chips = BB_TEXT.splitList(BB_TEXT.pick(s.hero_chips_ar, s.hero_chips_en));
     const chipList = (chips.length ? chips : t.defaultChips)
       .map((c) => `<span class="hero-chip">${esc(c)}</span>`).join('');
@@ -392,7 +395,7 @@
         <div class="container">
           <div class="hero-mark" aria-hidden="true">B</div>
           <h1 class="hero-title">${esc(title)}</h1>
-          <p class="hero-subtitle">${esc(subtitle)}</p>
+          ${subtitle ? `<p class="hero-subtitle">${esc(subtitle)}</p>` : ''}
           ${chipList ? `<div class="hero-chips">${chipList}</div>` : ''}
           <a class="btn btn-primary hero-cta" href="#/menu">${esc(cta)}</a>
         </div>
