@@ -586,10 +586,25 @@
     $('#view').innerHTML = `
       <div class="menu-controls">
         <div class="container">
-          <div class="search-wrap">
-            ${ICONS.search}
-            <input id="menuSearch" type="search" placeholder="${esc(t.searchPh)}"
-                   aria-label="${esc(t.searchLabel)}" autocomplete="off" inputmode="search">
+          <div class="menu-topbar">
+            <div class="search-wrap">
+              ${ICONS.search}
+              <input id="menuSearch" type="search" placeholder="${esc(t.searchPh)}"
+                     aria-label="${esc(t.searchLabel)}" autocomplete="off" inputmode="search">
+            </div>
+            <div class="sort-select-wrap">
+              <select id="menuSort" aria-label="${esc(t.sortLabel)}">
+                ${SORTS.map((s) => {
+                  const labels = {
+                    'featured': t.sortFeatured, 'newest': t.sortNewest,
+                    'price-asc': t.sortPriceAsc, 'price-desc': t.sortPriceDesc,
+                    'popular': t.sortPopular, 'offers': t.sortOffers
+                  };
+                  return `<option value="${s.key}" ${state.menuUI.sort === s.key ? 'selected' : ''}>${esc(labels[s.key])}</option>`;
+                }).join('')}
+              </select>
+              <span class="sort-caret" aria-hidden="true">${ICONS.chev}</span>
+            </div>
           </div>
           <div class="cat-tabs-wrap">
             <button class="cat-arrow cat-arrow-start" type="button" aria-label="${esc(t.catScrollBack)}">${ICONS.chev}</button>
@@ -600,16 +615,6 @@
                         ${String(state.menuUI.tab) === String(tb.id) ? 'aria-current="true"' : ''}>${esc(tb.label)}</button>`).join('')}
             </div>
             <button class="cat-arrow cat-arrow-end" type="button" aria-label="${esc(t.catScrollForward)}">${ICONS.chev}</button>
-          </div>
-          <div class="sort-chips" id="sortChips">
-            ${SORTS.map((s) => {
-              const labels = {
-                'featured': t.sortFeatured, 'newest': t.sortNewest,
-                'price-asc': t.sortPriceAsc, 'price-desc': t.sortPriceDesc,
-                'popular': t.sortPopular, 'offers': t.sortOffers
-              };
-              return `<button class="sort-chip ${state.menuUI.sort === s.key ? 'active' : ''}" data-sort="${s.key}">${esc(labels[s.key])}</button>`;
-            }).join('')}
           </div>
         </div>
       </div>
@@ -633,11 +638,11 @@
       const first = $('.menu-section');
       if (first && state.menuUI.tab !== 'all') first.scrollIntoView({ block: 'start' });
     }));
-    $$('.sort-chip').forEach((b) => b.addEventListener('click', () => {
-      state.menuUI.sort = b.dataset.sort;
-      $$('.sort-chip').forEach((x) => x.classList.toggle('active', x === b));
+    $('#menuSort').addEventListener('change', (e) => {
+      state.menuUI.sort = e.target.value;
+      e.target.classList.toggle('changed', e.target.value !== 'featured');
       refreshMenuResults();
-    }));
+    });
   }
 
   // ------------------------------------------------------------- item page
