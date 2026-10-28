@@ -259,6 +259,11 @@
         ${tel ? `<a class="foot-line" href="${esc(tel)}">${ICONS.phone}<bdi>${esc(phone)}</bdi></a>` : ''}
         ${hours ? `<span class="foot-line">${ICONS.clock}<bdi>${esc(hours)}</bdi></span>` : ''}
       </div>` : ''}
+      <nav class="foot-nav" aria-label="Site">
+        <a href="#/">${esc(t.footHome)}</a>
+        <a href="#/menu">${esc(t.footMenu)}</a>
+        <a href="${esc(BB_API.asset('/admin/'))}" rel="noopener">${esc(t.footAdmin)}</a>
+      </nav>
       <div class="foot-copy">${esc(t.poweredBy)}</div>`;
   }
 

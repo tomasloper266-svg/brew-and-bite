@@ -72,6 +72,9 @@ const BB_STRINGS = {
     remove: 'إزالة',
     decrease: 'إنقاص الكمية',
     increase: 'زيادة الكمية',
+    footHome: 'الرئيسية',
+    footMenu: 'تصفح المنتجات',
+    footAdmin: 'لوحة التحكم',
     poweredBy: '© 2026 Brew & Bite — حمص، سوريا'
   },
   en: {
@@ -144,6 +147,9 @@ const BB_STRINGS = {
     remove: 'Remove',
     decrease: 'Decrease quantity',
     increase: 'Increase quantity',
+    footHome: 'Home',
+    footMenu: 'Browse menu',
+    footAdmin: 'Admin panel',
     poweredBy: '© 2026 Brew & Bite — Homs, Syria'
   }
 };
