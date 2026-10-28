@@ -1,0 +1,11 @@
+node_modules/
+npm-debug.log*
+.env
+*.env
+.DS_Store
+
+# Runtime secrets & live WAL files — server regenerates these on boot
+data/session-secret.txt
+data/*.db-shm
+data/*.db-wal
+data/*.db-journal

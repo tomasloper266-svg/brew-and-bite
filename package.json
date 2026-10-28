@@ -1,0 +1,20 @@
+{
+  "name": "brew-and-bite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Brew & Bite backend — Express + SQLite API for menu, orders, and team admin (port 8820)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.2.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "multer": "^2.0.1"
+  }
+}
