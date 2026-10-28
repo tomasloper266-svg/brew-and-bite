@@ -118,7 +118,8 @@
     food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3M7 3v18M17 3c-1.5 1.5-2.5 3.5-2.5 6 0 2 1 3 2.5 3v9"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>',
     grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
-    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>'
   };
 
   // ---------------------------------------------------------------- images
@@ -535,6 +536,41 @@
     }
   }
 
+  let catTabsResize = null;
+  function wireCatTabsScroller() {
+    const wrap = document.querySelector('.cat-tabs-wrap');
+    const strip = document.getElementById('catTabs');
+    if (!wrap || !strip) return;
+    const rtl = getComputedStyle(strip).direction === 'rtl';
+    const btnStart = wrap.querySelector('.cat-arrow-start');
+    const btnEnd = wrap.querySelector('.cat-arrow-end');
+    const maxScroll = () => strip.scrollWidth - strip.clientWidth;
+    const update = () => {
+      const can = maxScroll() > 2;
+      const x = strip.scrollLeft;
+      wrap.classList.toggle('is-scrollable', can);
+      btnStart.disabled = !can || (rtl ? x > -1 : x < 1);
+      btnEnd.disabled = !can || Math.abs(x) >= maxScroll() - 1;
+    };
+    const glide = (towardEnd) => strip.scrollBy({
+      left: (towardEnd ? 1 : -1) * (rtl ? -1 : 1) * Math.max(180, Math.round(strip.clientWidth * 0.65)),
+      behavior: 'smooth'
+    });
+    btnStart.addEventListener('click', () => glide(false));
+    btnEnd.addEventListener('click', () => glide(true));
+    strip.addEventListener('scroll', update, { passive: true });
+    strip.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && maxScroll() > 2) {
+        e.preventDefault();
+        strip.scrollBy({ left: e.deltaY * (rtl ? -1 : 1), behavior: 'smooth' });
+      }
+    }, { passive: false });
+    if (catTabsResize) window.removeEventListener('resize', catTabsResize);
+    catTabsResize = update;
+    window.addEventListener('resize', catTabsResize);
+    update();
+  }
+
   function renderMenu(route) {
     const t = T();
     state.menuUI = {
@@ -555,11 +591,15 @@
             <input id="menuSearch" type="search" placeholder="${esc(t.searchPh)}"
                    aria-label="${esc(t.searchLabel)}" autocomplete="off" inputmode="search">
           </div>
-          <div class="cat-tabs" id="catTabs" role="tablist" aria-label="${esc(t.categoriesTitle)}">
-            ${tabs.map((tb) => `
-              <button class="cat-tab ${String(state.menuUI.tab) === String(tb.id) ? 'active' : ''}"
-                      data-cat="${esc(tb.id)}" role="tab"
-                      ${String(state.menuUI.tab) === String(tb.id) ? 'aria-current="true"' : ''}>${esc(tb.label)}</button>`).join('')}
+          <div class="cat-tabs-wrap">
+            <button class="cat-arrow cat-arrow-start" type="button" aria-label="${esc(t.catScrollBack)}">${ICONS.chev}</button>
+            <div class="cat-tabs" id="catTabs" role="tablist" aria-label="${esc(t.categoriesTitle)}">
+              ${tabs.map((tb) => `
+                <button class="cat-tab ${String(state.menuUI.tab) === String(tb.id) ? 'active' : ''}"
+                        data-cat="${esc(tb.id)}" role="tab"
+                        ${String(state.menuUI.tab) === String(tb.id) ? 'aria-current="true"' : ''}>${esc(tb.label)}</button>`).join('')}
+            </div>
+            <button class="cat-arrow cat-arrow-end" type="button" aria-label="${esc(t.catScrollForward)}">${ICONS.chev}</button>
           </div>
           <div class="sort-chips" id="sortChips">
             ${SORTS.map((s) => {
@@ -577,6 +617,7 @@
 
     refreshMenuResults();
     bindScrollSpy();
+    wireCatTabsScroller();
 
     $('#menuSearch').addEventListener('input', (e) => {
       state.menuUI.q = e.target.value;
